@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+	<display-name>Aestas Cloud Foundry Demo</display-name>
+
+	<description>Aestas Cloud Foundry demo</description>
+    <!--
+    Initalize the Cloud Foundry context, if the app is running in the CF infrastructure
+    -->
+	<context-param>
+		<param-name>contextInitializerClasses</param-name>
+		<param-value>com.aestas.blog.cloudfoundry.qa.servlet.CloudApplicationContextInitializer</param-value>
+	</context-param>
+
+	<!--
+		- Location of the XML file that defines the root application context.
+		- Applied by ContextLoaderServlet.
+	-->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/spring/applicationContext-redis.xml</param-value>
+	</context-param>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+    <!--
+    Servlet for serving static content
+    -->
+    <servlet>
+        <servlet-name>fileServlet</servlet-name>
+        <servlet-class>com.aestas.blog.cloudfoundry.qa.servlet.FileServlet</servlet-class>
+        <init-param>
+            <param-name>basePath</param-name>
+            <param-value>/WEB-INF/resources</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>fileServlet</servlet-name>
+        <url-pattern>/resources/*</url-pattern>
+    </servlet-mapping>
+
+	
+	<!--
+		- Servlet that dispatches request to registered handlers (Controller implementations).
+		- Has its own application context, by default defined in "{servlet-name}-servlet.xml",
+		- i.e. "aestas-servlet.xml".
+		-
+		- A web app can contain any number of such servlets.
+		- Note that this web app has a shared root application context, serving as parent
+		- of all DispatcherServlet contexts.
+	-->
+	<servlet>
+		<servlet-name>aestas</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>aestas</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<filter>
+		<filter-name>httpMethodFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>httpMethodFilter</filter-name>
+		<servlet-name>aestas</servlet-name>
+	</filter-mapping>
+
+	<session-config>
+		<session-timeout>10</session-timeout>
+	</session-config>
+
+	<error-page>
+		<exception-type>java.lang.Exception</exception-type>
+		<!-- Displays a stack trace -->
+		<location>/WEB-INF/jsp/oops.jsp</location>
+	</error-page>
+
+	<!-- eliminate welcome files -->
+	<!-- useful for Servlet 3 container (Tomcat 7 and Jetty 6) -->
+	<welcome-file-list>
+		<welcome-file></welcome-file>
+	</welcome-file-list>
+
+	<jsp-config>
+		<jsp-property-group>
+		  <description>Basic header/footer templating</description>
+		  <url-pattern>*.jsp</url-pattern>
+  		  <el-ignored>false</el-ignored>
+		  <include-prelude>/WEB-INF/templates/header.jspf</include-prelude>
+		  <include-coda>/WEB-INF/templates/footer.jspf</include-coda>
+		</jsp-property-group>
+	</jsp-config>
+
+</web-app>
